@@ -12,7 +12,7 @@ Here, $\hat{R}_0$ is the DW coordinate, $M$ is the effective mass, $\omega_b$ is
 
 The vibrational eigenstates of the potential are obtained by the Discrete Variable Representation (DVR) basis. We consider only the four lowest-energy states which are diabatized as:
 
-$|\nu_L⟩  = \frac{|\nu_0⟩ + |\nu_1⟩}{\sqrt{2}}, \qquad |\nu_R⟩  = \frac{|\nu_0⟩ - |\nu_1⟩}{\sqrt{2}} \\$
+$|\nu_L⟩  = \frac{|\nu_0⟩ + |\nu_1⟩}{\sqrt{2}}, \qquad |\nu_R⟩  = \frac{|\nu_0⟩ - |\nu_1⟩}{\sqrt{2}}$
 
 $|\nu'_L⟩ = \frac{|\nu_2⟩ + |\nu_3⟩}{\sqrt{2}}, \qquad |\nu'_R⟩ = \frac{|\nu_2⟩ - |\nu_3⟩}{\sqrt{2}}$
 
