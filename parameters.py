@@ -175,8 +175,8 @@ R = Rx(nDW)
 
 # SIMULATION PARAMETERS ==============================
 parallel = True                                            # DO PARALLELIZATION
-Cpus     = 40                                              # NUMBER THE CPUS USE FOR PARALLELIZATION
-NTraj    = 4000                                            # NUMBER OF TRAJECTORIES
+Cpus     = 100                                             # NUMBER THE CPUS USE FOR PARALLELIZATION
+NTraj    = 20000                                           # NUMBER OF TRAJECTORIES
 tf       = 2500 * fstoau                                   # SIMULATION TIME IN FEMTOSECONDS
 dtN      = 6                                               # NUCLEAR TIME STEP
 NSteps   = int(tf/dtN)                                     # NUMBER OF SIMULATION STEPS
