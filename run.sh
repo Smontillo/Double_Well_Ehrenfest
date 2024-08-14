@@ -9,3 +9,4 @@
 #SBATCH --ntasks-per-node=1
 
 python dynamics.py
+# python model.py

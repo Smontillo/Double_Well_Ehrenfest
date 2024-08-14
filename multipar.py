@@ -12,13 +12,14 @@ import subprocess
 import time
 import numpy as np
 from pathlib import Path
+# import parameters as par
 
 try:
     os.rmdir("/scratch/smontill/Simpkins/MFE/parallel/tmpdir")
 except:
     print("No folder") 
 
-NARRAY = str(99) # number of jobs
+NARRAY = str(49) # number of jobs
 filename = "job"
 
 manual = 0

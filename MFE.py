@@ -5,18 +5,25 @@ import parameters as par
 # ==================================
 
 # FORCE MATRIX
-@nb.jit(nopython=True, fastmath=True)
-def Force(data, F):
-    F[:]    = 0
-    F[:]   -= par.ωj**2 * data.x * 1.0
-    par_sum = np.sum(par.dHij * 1.0 * data.ρt, axis= 1).real    # NUMBA DOES NOT ALLOW THE SUMMATION OVER TWO AXIS, MUST BE DONE IN TWO STEPS
-    F[:]   -= np.sum(par_sum, axis = 1).real
+# @nb.jit(nopython=True, fastmath=True)
+def Force1(data):
+    data.F1[:]    = 0
+    data.F1[:]   -= par.ωj[:]**2 * data.x[:] 
+    par_sum  = np.sum(par.dHij * data.ρt * 1.0, axis= 1).real    # NUMBA DOES NOT ALLOW THE SUMMATION OVER TWO AXIS, MUST BE DONE IN TWO STEPS
+    data.F1[:]   -= np.sum(par_sum, axis = 1).real
+
+# @nb.jit(nopython=True, fastmath=True)
+def Force2(data):
+    data.F2[:]    = 0
+    data.F2[:]   -= par.ωj[:]**2 * data.x[:] 
+    par_sum = np.sum(par.dHij * data.ρt * 1.0, axis= 1).real    # NUMBA DOES NOT ALLOW THE SUMMATION OVER TWO AXIS, MUST BE DONE IN TWO STEPS
+    data.F2[:]   -= np.sum(par_sum, axis = 1).real
 
 # RUNGE - KUTTA PROPAGATOR
 # THIS DOES HALF OF THE ELETRONIC STEPS, par.Estep/2 | Estep MUST BE EVEN!!!
-@nb.jit(nopython=True, fastmath=True)
+# @nb.jit(nopython=True, fastmath=True)
 def RK4(data):
-    H  = par.H0 * 1.0 + data.H_bc * 1.0
+    H  = par.Hel * 1.0 + data.H_bc * 1.0
     ρ  = data.ρt * 1.0
     dt = par.dtE * 1.0
     for k in range(int(par.Estep/2)):
@@ -28,39 +35,42 @@ def RK4(data):
     data.ρt = 1.0 * ρ
 
 # VON - NEWMAN EQUATION
-@nb.jit(nopython=True, fastmath=True)
+# @nb.jit(nopython=True, fastmath=True)
 def von_Newman(ρf, H):
     return -1j * (H @ ρf - ρf @ H)
 
 #  VELOCITY VERLET PROPAGATOR
-@nb.jit(nopython=True, fastmath=True)
+# @nb.jit(nopython=True, fastmath=True)
 def VelVer(data) : 
-    data.v[:] = data.P[:]/par.M                                                 # VELOCITY           
+    data.v[:] = data.P[:]/par.M * 1.0                                                # VELOCITY           
     RK4(data)                                                                   # ELECTRONIC UPDATE | RK4 DOES HALF OF THE ELECTRONIC PROPAGATION!!!!
     # ======= Nuclear Block ==================================
-    data.x[:] += data.v[:] * par.dtN + 0.5 * data.F1[:] * par.dtN** 2 / par.M   # POSITION UPDATE
+    data.x[:] += data.v[:] * par.dtN + 0.5 * data.F1[:] * par.dtN**2 / par.M   # POSITION UPDATE
     model.H_BC(data)                                                            # ELECTRONIC HAMILTONIAN UPDATE | BATH POSITION DEPEDENT PART (CHECK model.py FILE) 
     #-----------------------------
-    Force(data, data.F2)                                                        # FORCE AT t2
+    RK4(data)                                                                   # ELECTRONIC UPDATE | RK4 DOES HALF OF THE ELECTRONIC PROPAGATION!!!!
+    Force2(data)                                                             # FORCE AT t2                                                   
     data.v[:] += 0.5 * (data.F1[:] + data.F2[:]) * par.dtN / par.M              # VELOCITY UPDATE
-    data.P[:] = data.v[:] * par.M                                               # MOMENTUM UPDATE
+    data.P[:]  = data.v[:] * par.M * 1.0                                              # MOMENTUM UPDATE
     data.F1[:] = data.F2[:] * 1.0                                               # SET F1 AS F2 FOR THE NEXT STEP
     # ======================================================
-    RK4(data)                                                                   # ELECTRONIC UPDATE | RK4 DOES HALF OF THE ELECTRONIC PROPAGATION!!!!
 
 # RUN TRAJECTORIES
-@nb.jit(nopython=True, fastmath=True)
+# @nb.jit(nopython=True, fastmath=True)
 def run_traj(data):
     model.initR(data)                           # INITIALIZE x AND P FOR ALL BATH MODES
     data.ρt = par.ρ0                            # INITIAL DENSITY MATRTIX
-    Force(data, data.F1)                        # FORCE AT t = 0
+    Force1(data)                                # FORCE AT t = 0
+    model.H_BC(data) 
 
     iskip = 0
-    for st in range(data.nsteps):
+    for st in range(data.nSteps):
         if (st % par.nskip == 0):               # WRITTING OF THE DENSITY MATRIX
             ρ = data.ρt
             ρ = ρ.copy()
-            data.ρw[iskip,:]  = ρ.reshape(1,par.nDW**2)
+            data.ρw[iskip,:] = ρ.reshape(1,par.nDW**2)
+            data.test[iskip,0] += data.H_bc[2,2] #+ par.Hel[2,0]
+            data.test[iskip,1] += data.H_bc[3,3] #+ par.Hel[1,1]
             iskip += 1
 
         VelVer(data)                            # EVOLUTION OF THE SYSTEM FOR nsteps
