@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -p action
+#SBATCH -p debug
 #SBATCH -x bhd0005,bhc0024,bhd0020
 #SBATCH --output=qbath.out
 #SBATCH --error=qbath.err

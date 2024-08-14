@@ -19,7 +19,7 @@ try:
 except:
     print("No folder") 
 
-NARRAY = str(49) # number of jobs
+NARRAY = str(39) # number of jobs
 filename = "job"
 
 manual = 0

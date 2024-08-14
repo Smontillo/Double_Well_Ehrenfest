@@ -1,5 +1,7 @@
 data/
 tmpdir/
+__pychache__/
 *out
 *log
 *err
+*sh

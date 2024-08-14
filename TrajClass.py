@@ -5,23 +5,23 @@ from numba import jit
 import parameters as par
 # ==================================
 
-# spec = [
-#     ('nt',                      int32), # NUMBER OF VIBRATIONAL STATES 
-#     ('nSteps',                  int32), # NUMBER OF EVOLUTION STEPS
-#     ('nData',                   int32), # NUMBER OF SAVED STEPS
-#     ('ndof',                    int32), # NUMBER OF BATH MODES
-#     ('x',                  float64[:]), # BATH POSITION
-#     ('P',                  float64[:]), # BATH MOMENTA
-#     ('v',                  float64[:]), # BATH VELOCITY
-#     ('F1',                 float64[:]), # BATH FORCE AT t
-#     ('F2',                 float64[:]), # BATH FORCE AT t + 1
-#     ('ρt',            complex128[:,:]), # DENSITY MATRIX AT TIME t
-#     ('H_bc',          complex128[:,:]), # ELECTRONIC HAMILTONIAN | DEPENDENT OF THE POSITION OF THE BATH OSCILLATOR
-#     ('ρw',            complex128[:,:]), # PLACE HOLDER FOR THE DENSITY MATRIX
-#     ('test',          complex128[:,:]), # PLACE HOLDER FOR THE DENSITY MATRIX
-# ]
+spec = [
+    ('nt',                      int32), # NUMBER OF VIBRATIONAL STATES 
+    ('nSteps',                  int32), # NUMBER OF EVOLUTION STEPS
+    ('nData',                   int32), # NUMBER OF SAVED STEPS
+    ('ndof',                    int32), # NUMBER OF BATH MODES
+    ('x',                  float64[:]), # BATH POSITION
+    ('P',                  float64[:]), # BATH MOMENTA
+    ('v',                  float64[:]), # BATH VELOCITY
+    ('F1',                 float64[:]), # BATH FORCE AT t
+    ('F2',                 float64[:]), # BATH FORCE AT t + 1
+    ('ρt',            complex128[:,:]), # DENSITY MATRIX AT TIME t
+    ('H_bc',          complex128[:,:]), # ELECTRONIC HAMILTONIAN | DEPENDENT OF THE POSITION OF THE BATH OSCILLATOR
+    ('ρw',            float64[:,:]), # PLACE HOLDER FOR THE DENSITY MATRIX
+    ('test',          complex128[:,:]), # PLACE HOLDER FOR THE DENSITY MATRIX
+]
 
-# @jitclass(spec)
+@jitclass(spec)
 class trajData(object):
     def __init__(self, nDW, ndof, nSteps, nData):
         self.nt     = nDW
@@ -35,5 +35,5 @@ class trajData(object):
         self.F2     = np.zeros(self.ndof, dtype = np.float64)
         self.ρt     = np.zeros((self.nt, self.nt), dtype = np.complex128)
         self.H_bc   = np.zeros((self.nt, self.nt), dtype = np.complex128)
-        self.ρw     = np.zeros((nData,self.nt**2), dtype = np.complex128)
+        self.ρw     = np.zeros((nData,self.nt))
         self.test   = np.zeros((nData,2) , dtype = np.complex128)

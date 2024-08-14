@@ -14,14 +14,14 @@ import parameters as par
 # ===========================
 
 # ELECTRONIC - BATH COUPLING HAMILTONIAN
-# @nb.jit(nopython=True, fastmath=True)
+@nb.jit(nopython=True, fastmath=True)
 def H_BC(data):
     Hbc  = np.zeros((par.nDW,par.nDW), dtype = np.complex128)
     Hbc -= np.sum(par.cj[:] * data.x[:]) * par.R 
     data.H_bc = Hbc * 1.0
 
 # INITIALIZE BATH DOF
-# @nb.jit(nopython=True, fastmath=True)
+@nb.jit(nopython=True, fastmath=True)
 def initR(data):
     data.x[:] = 0
     data.P[:] = 0

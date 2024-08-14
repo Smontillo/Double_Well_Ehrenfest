@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 # FUNCTIONS
 # ==================================
 # DOUBLE WELL R IN ENERGY BASIS
-# @nb.jit(nopython=True, fastmath=True)
+@nb.jit(nopython=True, fastmath=True)
 def Rx(nDW):
     pos_DW = np.zeros((nDW,nDW), dtype = np.complex128)
     for j in range(nDW):
@@ -26,7 +26,7 @@ def Rx(nDW):
     return pos_DW
 
 # DOUBLE WELL POTENTIAL ENERGY
-# @nb.jit(nopython=True, fastmath=True)
+@nb.jit(nopython=True, fastmath=True)
 def DW(x,m,wDW):
     m = 1
     Eb = 2250 * cmtoau
@@ -34,7 +34,7 @@ def DW(x,m,wDW):
     return V - min(V)
 
 # KINETIC ENERGY
-# @nb.jit(nopython=True, fastmath=True)
+@nb.jit(nopython=True, fastmath=True)
 def T(x,m):
     dx = x[0] - x[1]
     N = len(x)
@@ -49,7 +49,7 @@ def T(x,m):
     return 1/(2*m) * Kin
 
 # DISCRETE VARIABLE REPRESENTATION FUNCTION
-# @nb.jit(nopython=True, fastmath=True)
+@nb.jit(nopython=True, fastmath=True)
 def DVR(x,m,wDW):
     V = DW(x,m,wDW)
     V = np.diag(V)
@@ -58,12 +58,12 @@ def DVR(x,m,wDW):
     return E, V
 
 # DRUDE - LORENTZ SPECTRAL DENSITY
-# @nb.jit(nopython=True, fastmath=True)
+@nb.jit(nopython=True, fastmath=True)
 def J_DrudeL(λ, γ, ω):
     return (2 * γ * λ * ω) / (ω**2 + γ**2)
 
 # BATH PARAMETERS
-# @nb.jit(nopython=True, fastmath=True)
+@nb.jit(nopython=True, fastmath=True)
 def BathParam(λD, γD, N, num):    
     ωj = np.zeros((N))
     cj = np.zeros((N), dtype = np.complex128)
@@ -97,7 +97,7 @@ def BathParam(λD, γD, N, num):
     return cj, ωj
 
 # BOSONIC CREATION OPERATOR
-# @nb.jit(nopython=True, fastmath=True)
+@nb.jit(nopython=True, fastmath=True)
 def creation(n):
     a = np.zeros((n,n), dtype = np.complex128)
     b = np.array([(x+1)**0.5 for x in range(n)], dtype = np.complex128)
@@ -105,7 +105,7 @@ def creation(n):
     return a
 
 # ∂H/∂x_i - POSITION INDEPENDENT PART
-# @nb.jit(nopython=True, fastmath=True)
+# THIS FUNCTION CAN NOT BE JITTED!!!
 def dHij_cons():
     dHij         = np.zeros((ndof, nDW, nDW), dtype = np.complex128)
     dHij[:,:,:] -= np.kron(cj, R).T.reshape(ndof, nDW, nDW)
@@ -113,7 +113,7 @@ def dHij_cons():
 
 # ELECTRONIC HAMILTONIAN 
 # CONTRUCTED IN THE IN THE DIABATIC BASIS WITH 4 VIBRATIONAL STATES |ν_L⟩, |ν_R⟩, |ν'_L⟩, |ν'_R⟩ 
-# @nb.jit(nopython=True, fastmath=True)
+@nb.jit(nopython=True, fastmath=True)
 def Hel_cons():
     R2 = R @ R                                          # Rx^2
     H  = np.zeros((nDW, nDW), dtype = np.complex128)    
@@ -145,7 +145,7 @@ wDW = 1000 * cmtoau                                       # DW BARRIER FREQUENCY
 N = 1024                                                  # NUMBER OF POINTS THAT DISCRETIZE R0 FOR DVR
 L = 100.0                                                 # UPPER AND LOWER R0 LIMIT [-L, L]
 x0 = np.linspace(-L,L,N)                                  # R0
-dx = x0[0] - x0[1]                                        
+dx = x0[0] - x0[1]                                        # dx
 EDW, VDW = DVR(x0,M,wDW)                                  # EIGENENERGIES AND EIGENSTATES FOR THE DW 
 Normx = np.trapz(VDW[:,0].conjugate() * VDW[:,0],x0,dx)    
 VDW = VDW/(Normx)**0.5                                    # NORMALIZE THE EIGENSTATES
@@ -164,7 +164,7 @@ diaE = np.zeros((4), dtype = np.complex128)
 diaE[0], diaE[1] = (EDW[0] + EDW[1])/2, (EDW[0] + EDW[1])/2
 # E[ν'_L] = E[ν'_R] = (E[2] + E[3])/2 
 diaE[2], diaE[3] = (EDW[2] + EDW[3])/2, (EDW[2] + EDW[3])/2
-diaE -= diaE[0]
+diaE -= diaE[0]                                                 # GROUND STATE ENERGY IS SUBSTRACTED
 # POSITION OPERATOR
 R = Rx(nDW)
 
@@ -174,16 +174,16 @@ R = Rx(nDW)
 ρ0[0,0] = 1.0 + 0 * 1j
 
 # SIMULATION PARAMETERS ==============================
-parallel = True
-Cpus     = 50                                              # NUMBER THE CPUS USE FOR PARALLELIZATION
-NTraj    = 500                                            # NUMBER OF TRAJECTORIES
-tf       = 2000 * fstoau                                   # SIMULATION TIME IN FEMTOSECONDS
+parallel = True                                            # DO PARALLELIZATION
+Cpus     = 40                                              # NUMBER THE CPUS USE FOR PARALLELIZATION
+NTraj    = 4000                                            # NUMBER OF TRAJECTORIES
+tf       = 2500 * fstoau                                   # SIMULATION TIME IN FEMTOSECONDS
 dtN      = 6                                               # NUCLEAR TIME STEP
 NSteps   = int(tf/dtN)                                     # NUMBER OF SIMULATION STEPS
 Sim_time = np.array([(x * dtN) for x in range(NSteps)])    # SIMULATION TIMES ARRAY
 Estep    = 30                                              # NUMBER OF ELECTRONIC STEPS PER NUCLEAR TIME STEP ⇒ MUST BE EVEN!!!!
 dtE      = dtN/Estep                                       # ELECTRONIC TIME STEP
-nskip    = 5                                               # FRAME SAVED ⇒ HAS NOT BEEN PROGRAM YET, MUST BE 1!!!!
+nskip    = 5                                               # FRAME SAVING RATE
 
 if NSteps%nskip == 0:
     nData = NSteps // nskip + 0
@@ -197,8 +197,8 @@ ndof   = 300                                               # NUMBER OF BATH OSCI
 num    = False                                             # DISCRETIZATION OF THE SPECTRAL DENSITY | True ⇒ Numerical | False ⇒ Analytical
 cj, ωj = BathParam(λD, γD, ndof, num)                      # BATH COUPLINGS AND FREQUENCIES
 # TIME INDEPENDENT FUNCTIONS ==============================
-Hel   = Hel_cons()                                         # ELECTRONIC HAMILTONIAN | INDEPENDENT OF THE POSITION OF THE BATH OSCILLATOR
-dHij = dHij_cons()                                         # ∂H/∂x_i                | INDEPENDENT OF THE POSITION OF THE BATH OSCILLATOR
+Hel  = Hel_cons()                                          # ELECTRONIC HAMILTONIAN | INDEPENDENT OF THE POSITION OF THE BATH OSCILLATOR
+dHij = dHij_cons()                                         # ∂H/∂x_i                | INDEPENDENT OF THE POSITION OF THE BATH OSCILLATOR | DO NOT JIT
 
 
 if __name__ == '__main__': 

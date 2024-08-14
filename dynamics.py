@@ -71,24 +71,21 @@ TaskArray = [i for i in range(nrank * NTasks , (nrank+1) * NTasks)]
 for i in range(NRem):
     if i == nrank: 
         TaskArray.append((NTasks*size)+i)
-TaskArray = np.array(TaskArray)                                 # CONTAINS THE NUMBER OF TRAJECTORIES ASSIGN TO EACH JOB
+TaskArray = np.array(TaskArray)                                  # CONTAINS THE NUMBER OF TRAJECTORIES ASSIGNED TO EACH JOB
+# =================================
 
-ρw = np.zeros((par.nData, par.nDW**2), dtype = np.complex128)  # DENSITY MATRIX AVERAGED OVER THE NUMBER OF TRAJECTORIES ASSIGNED TO THIS JOB
-test = np.zeros((par.nData,2), dtype = np.complex128)  # DENSITY MATRIX AVERAGED OVER THE NUMBER OF TRAJECTORIES ASSIGNED TO THIS JOB
-trajData = tc.trajData(par.nDW, par.ndof, par.NSteps, par.nData)           # INITIATE THE TIME DEPENDENT DATA
+ρw = np.zeros((par.nData, par.nDW))                              # DENSITY MATRIX AVERAGED OVER THE NUMBER OF TRAJECTORIES ASSIGNED TO THIS JOB
+trajData = tc.trajData(par.nDW, par.ndof, par.NSteps, par.nData) # INITIATE THE TIME DEPENDENT DATA
 
 sim_ti = tm.time()
 for i in range(len(TaskArray)):
     method.run_traj(trajData)
     ρw += trajData.ρw
-    test += trajData.test
 sim_tf = tm.time()
 print(f'Simulation time --> {np.round(sim_tf - sim_ti,2)} s or {np.round((sim_tf - sim_ti)/60,2)} min')
 print(' ================================================================================================= ')
 
 try:
-    np.savetxt(f'../data/rho_{nrank}.txt', ρw/len(TaskArray))   # WHEN RUN IN PARALLEL
-    np.savetxt(f'../data/test_{nrank}.txt', test/len(TaskArray))    # WHEN RUN IN SERIES
+    np.savetxt(f'../data/rho_{nrank}.txt', ρw/len(TaskArray))   # RUN IN PARALLEL
 except:
-    np.savetxt(f'./data/rho_{nrank}.txt', ρw/len(TaskArray))    # WHEN RUN IN SERIES
-    np.savetxt(f'./data/test_{nrank}.txt', test/len(TaskArray))    # WHEN RUN IN SERIES
+    np.savetxt(f'./data/rho_{nrank}.txt', ρw/len(TaskArray))    # RUN IN SERIES
