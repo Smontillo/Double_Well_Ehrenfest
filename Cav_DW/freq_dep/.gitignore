@@ -1,0 +1,8 @@
+*0/
+data/
+tmpdir/
+__pychache__/
+tests/
+*out
+*log
+*err

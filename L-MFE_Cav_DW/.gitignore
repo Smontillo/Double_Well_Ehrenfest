@@ -1,0 +1,10 @@
+*0
+traj_parallel/
+data/
+tmpdir/
+__pychache__/
+tests/
+*out
+*log
+*err
+*sh
